@@ -8,12 +8,8 @@ import random
 class DataLoader():
     def __init__(self, train_features, train_labels):
         
-        self.x_data, num_points, num_words = read_sparse(
-            train_features, return_dict = True, padding = False, tf_idf = True
-        )
-        self.y_data, _, num_labels = read_sparse(
-            train_labels, return_dict = True, padding = False, tf_idf = False
-        )
+        self.x_data, num_points, num_words = read_sparse(train_features, return_dict = True, tf_idf = True)
+        self.y_data, _, num_labels = read_sparse(train_labels, return_dict = True, tf_idf = False)
         
         self.num_points = num_points
         self.num_labels = num_labels
@@ -34,6 +30,15 @@ class DataLoader():
         # Shuffle
         self.shuffle_stochastic()
         
+    def get_labels_csr(self):
+        data, rows, cols = [], [], []
+        for point_num in range(len(self.y_data)):
+            for label in self.y_data[point_num]:
+                rows.append(point_num)
+                cols.append(label)
+                data.append(1.0)
+        return csr_matrix((data, (rows, cols)), shape = (self.num_points, self.num_labels), dtype = np.float32)
+        
     def shuffle_stochastic(self):
         indices = np.arange(len(self.x))
         np.random.shuffle(indices)
@@ -49,6 +54,7 @@ class DataLoader():
     
     def serialize(self, arr, drop_prob = None, tf_idf = False):
         words, offsets, tf = [], [], []
+        
         for i in arr:
             offsets.append(len(words))
             
@@ -105,7 +111,7 @@ class DataLoader():
                   tf_idf, \
                   i, pbar
 
-def read_sparse(file, return_dict = False, return_separate = False, padding = True, tf_idf = False):
+def read_sparse(file, return_dict = False, tf_idf = False):
     matrix = None
     nr, nc = None, None
 
@@ -129,20 +135,13 @@ def read_sparse(file, return_dict = False, return_separate = False, padding = Tr
             at += 1
             line = f.readline()
 
-        if return_separate == True:
-            matrix = [ 
-                np.array(rows), 
-                np.array(cols), 
-                np.array(data) 
-            ]
+        matrix = [ 
+            np.array(rows), 
+            np.array(cols), 
+            np.array(data) 
+        ]
         
-        elif return_dict == False:
-            data = np.array(data)
-            rows = np.array(rows)
-            cols = np.array(cols)
-            matrix = csr_matrix((data, (rows, cols)), shape = (nr, nc), dtype = np.bool_)
-        
-        elif return_dict == True:
+        if return_dict == True:
             matrix = []
             for i in range(at): matrix.append([])
             
@@ -151,14 +150,6 @@ def read_sparse(file, return_dict = False, return_separate = False, padding = Tr
                 else: matrix[rows[i]].append([ cols[i], data[i] ])
                 
             max_num = 0
-            for i in range(len(matrix)):
-                max_num = max(max_num, len(matrix[i]))
-            print(max_num)
-                
-            if padding == True: 
-                for i in range(len(matrix)):
-                    while len(matrix[i]) != max_num:
-                        matrix[i].append(nc)
-                matrix = np.array(matrix)
+            for i in range(len(matrix)): max_num = max(max_num, len(matrix[i]))
 
     return matrix, nr, nc

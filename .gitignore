@@ -1,2 +1,4 @@
 metrics.csv
 score_mat_new.txt
+__pycache__/
+.ipynb_checkpoints/
