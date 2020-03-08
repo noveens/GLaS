@@ -17,7 +17,7 @@ url = {http://papers.nips.cc/paper/8740-breaking-the-glass-ceiling-for-embedding
 - Launch jupyter notebook
 - Open and run `glas_test.ipynb`
 
-# Code organiation
+# Code organization
 - `EURLex-4K`: Data directory. All data is downloaded from the [XML Repository](http://manikvarma.org/downloads/XC/XMLRepository.html).
 - `logs`: Training logs. This GitHub repository contains training logs for various model combinations on EURLex-4K.
 - `utils.py`: Data loader. Contains code relevant for reading data from files, and making batches.
